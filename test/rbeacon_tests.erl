@@ -24,7 +24,7 @@ loop_sub(Beacon, Acc, N) ->
     end.
 
 
-rbeacon_test() ->
+single_publisher_single_subscriber_test() ->
     {ok, Service} = rbeacon:new(9999),
     ?assert(is_pid(Service)),
 
@@ -37,10 +37,12 @@ rbeacon_test() ->
     {ok, Msg, _Addr} = rbeacon:recv(Client),
     ?assertEqual(Msg, <<"announcement">>),
 
-
     ok = rbeacon:close(Service),
     ok = rbeacon:close(Client),
+    
+    true.
 
+multiple_publishers_single_subscriber_test() ->
     {ok, Node1} = rbeacon:new(5670),
     {ok, Node2} = rbeacon:new(5670),
     {ok, Node3} = rbeacon:new(5670),
@@ -59,9 +61,9 @@ rbeacon_test() ->
     rbeacon:close(Node2),
     rbeacon:close(Node3),
 
-    ok.
+    true.
 
-rbeacon_active_test() ->
+single_publisher_single_subscriber_active_test() ->
     {ok, Service} = rbeacon:new(9999, [active, noecho]),
     ?assert(is_pid(Service)),
 
@@ -85,6 +87,9 @@ rbeacon_active_test() ->
         {rbeacon, Client, closed} -> ok
     end,
 
+    true.
+
+multiple_publisher_single_subscriber_active_test() ->
     {ok, Node1} = rbeacon:new(5670, [active, noecho]),
     {ok, Node2} = rbeacon:new(5670, [active, noecho]),
     {ok, Node3} = rbeacon:new(5670, [active, noecho]),
@@ -102,5 +107,5 @@ rbeacon_active_test() ->
     rbeacon:close(Node2),
     rbeacon:close(Node3),
 
-    ok.
+    true.
 
