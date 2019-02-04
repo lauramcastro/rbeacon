@@ -14,16 +14,6 @@
 
 -include_lib("eunit/include/eunit.hrl").
 
-
-loop_sub(_Beacon, Acc, 0) ->
-    Acc;
-loop_sub(Beacon, Acc, N) ->
-    receive
-        {rbeacon, Beacon, Msg, _} ->
-            loop_sub(Beacon, [Msg | Acc], N-1)
-    end.
-
-
 single_publisher_single_subscriber_test() ->
     {ok, Service} = rbeacon:new(9999),
     ?assert(is_pid(Service)),
@@ -40,27 +30,6 @@ single_publisher_single_subscriber_test() ->
     ok = rbeacon:close(Service),
     ok = rbeacon:close(Client),
     
-    true.
-
-multiple_publishers_single_subscriber_test() ->
-    {ok, Node1} = rbeacon:new(5670),
-    {ok, Node2} = rbeacon:new(5670),
-    {ok, Node3} = rbeacon:new(5670),
-
-    ok = rbeacon:noecho(Node1),
-
-    rbeacon:publish(Node1, <<"Node/1">>),
-    rbeacon:publish(Node2, <<"Node/2">>),
-    rbeacon:publish(Node3, <<"GARBAGE">>),
-    rbeacon:subscribe(Node1, <<"Node">>),
-
-    {ok, Msg2, _Addr} = rbeacon:recv(Node1),
-    ?assertEqual(Msg2, <<"Node/2">>),
-
-    rbeacon:close(Node1),
-    rbeacon:close(Node2),
-    rbeacon:close(Node3),
-
     true.
 
 single_publisher_single_subscriber_active_test() ->
@@ -89,6 +58,27 @@ single_publisher_single_subscriber_active_test() ->
 
     true.
 
+multiple_publishers_single_subscriber_test() ->
+    {ok, Node1} = rbeacon:new(5670),
+    {ok, Node2} = rbeacon:new(5670),
+    {ok, Node3} = rbeacon:new(5670),
+
+    ok = rbeacon:noecho(Node1),
+
+    rbeacon:publish(Node1, <<"Node/1">>),
+    rbeacon:publish(Node2, <<"Node/2">>),
+    rbeacon:publish(Node3, <<"GARBAGE">>),
+    rbeacon:subscribe(Node1, <<"Node">>),
+
+    {ok, Msg2, _Addr} = rbeacon:recv(Node1),
+    ?assertEqual(Msg2, <<"Node/2">>),
+
+    rbeacon:close(Node1),
+    rbeacon:close(Node2),
+    rbeacon:close(Node3),
+
+    true.
+
 multiple_publisher_single_subscriber_active_test() ->
     {ok, Node1} = rbeacon:new(5670, [active, noecho]),
     {ok, Node2} = rbeacon:new(5670, [active, noecho]),
@@ -108,4 +98,15 @@ multiple_publisher_single_subscriber_active_test() ->
     rbeacon:close(Node3),
 
     true.
+
+loop_sub(_Beacon, Acc, 0) ->
+    Acc;
+loop_sub(Beacon, Acc, N) ->
+    receive
+        {rbeacon, Beacon, Msg, _} ->
+            loop_sub(Beacon, [Msg | Acc], N-1)
+    end.
+
+
+
 
