@@ -1,3 +1,5 @@
 language: erlang
 otp_release:
    - 21.2
+script:
+   - rebar3 do eunit, cover
