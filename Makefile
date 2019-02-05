@@ -1,13 +1,11 @@
-ERL          ?= erl
-ERLC		     ?= erlc
-APP          := rbeacon
-REBAR?= rebar
+ERL   ?= erl
+ERLC  ?= erlc
+APP   := rbeacon
+REBAR ?= rebar3
 
-.PHONY: deps doc
+.PHONY: doc test
 
 all: deps compile
-
-dev: devbuild
 
 compile:
 	@$(REBAR) compile
@@ -15,33 +13,20 @@ compile:
 deps:
 	@$(REBAR) get-deps
 
-doc: dev
-	$(REBAR) -C rebar_dev.config doc skip_deps=true
-
+doc: compile
+	$(REBAR) edoc skip_deps=true
 
 clean:
 	@$(REBAR) clean
-	@rm -f t/*.beam
-	@rm -f doc/*.html doc/*.css doc/edoc-info doc/*.png
 
-distclean: clean
-	@$(REBAR) delete-deps
-	@rm -rf deps
+distclean:
+	@$(REBAR) clean --all
+	@rm -rf _build
+	@rm -rf .eunit
+	@rm -rf rebar.lock .rebar
 
 dialyzer: compile
-	@dialyzer -Wno_return -c ebin
+	$(REBAR) dialyzer
 
-test: all
-	@$(REBAR) eunit
-
-
-# development
-#
-devclean:
-	$(REBAR) -C rebar_dev.config clean
-
-devbuild: devdeps
-	$(REBAR) -C rebar_dev.config compile
-
-devdeps:
-	$(REBAR) -C rebar_dev.config get-deps
+test: compile
+	@$(REBAR) do eunit, cover
