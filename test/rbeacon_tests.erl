@@ -3,13 +3,6 @@
 %%% This file is part of rbeacon released under the Mozilla Public License
 %%% Version 2.0. See the NOTICE for more information.
 
-%% @doc The rbeacon module implements a peer-to-peer discovery service for local
-%% networks. A beacon can broadcast and/or capture service announcements using
-%% UDP messages on the local area network. This implementation uses IPv4 UDP
-%% broadcasts. You can define the format of your outgoing beacons, and set a
-%% filter that validates incoming beacons. Beacons are sent and received
-%% asynchronously in the background.
-%%
 -module(rbeacon_tests).
 
 -include_lib("eunit/include/eunit.hrl").
