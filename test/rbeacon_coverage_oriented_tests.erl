@@ -71,7 +71,9 @@ hostname_and_broadcast_ip_test() ->
 calculate_broadcast_ip({A, B, C, D}, {255, 255, 255, 255}) ->
     {A, B, C, D};
 calculate_broadcast_ip({A, B, C, _D}, {255, 255, 255, 0}) ->
-    {A, B, C, 255}.
+    {A, B, C, 255};
+calculate_broadcast_ip({A, B, C, _D}, {255, 255, 0, 0}) ->
+    {A, B, 255, 255}.
 
 %% 1 test (5 lines) => 60% to 60%
 set_invalid_interval_test() ->
