@@ -53,13 +53,23 @@ hostname_and_broadcast_ip_test() ->
     {ok, Service} = rbeacon:new(9999),
 
     IP = rbeacon:hostname(Service),
-    ?assertMatch({_, _, _, _}, IP), % it would be much better to test if this is a valid IP
-    {A, B, C, _} = IP,
-    ?assertMatch({A, B, C, 255}, rbeacon:broadcast_ip(Service)),
+
+    {ok, NetworkInterfaces} = inet:getifaddrs(),
+    [NetworkInterface] = [ {Name, Options} || {Name, Options} <- NetworkInterfaces, proplists:lookup(addr, Options) =/= none andalso Name =/= "lo"],
+
+    {addr, IPAddress} = proplists:lookup(addr, element(2, NetworkInterface)),
+    ?assertEqual(IPAddress, IP), % it would be good to test if this is a valid IP
+
+    {netmask, Mask} = proplists:lookup(netmask, element(2, NetworkInterface)),
+    BroadcastIP = calculate_broadcast_ip(IPAddress, Mask),
+    ?assertMatch(BroadcastIP, rbeacon:broadcast_ip(Service)),
 
     ok = rbeacon:close(Service),
     
     true.
+
+calculate_broadcast_ip({A, B, C, _D}, {255, 255, 255, 0}) ->
+    {A, B, C, 255}.
 
 %% 1 test (5 lines) => 60% to 60%
 set_invalid_interval_test() ->
