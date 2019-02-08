@@ -55,14 +55,14 @@ hostname_and_broadcast_ip_test() ->
     IP = rbeacon:hostname(Service),
 
     {ok, NetworkInterfaces} = inet:getifaddrs(),
-    [NetworkInterface] = [ {Name, Options} || {Name, Options} <- NetworkInterfaces, proplists:lookup(addr, Options) =/= none andalso Name =/= "lo"],
+    UsefulNetworkInterfaces = [ {Name, Options} || {Name, Options} <- NetworkInterfaces, proplists:lookup(addr, Options) =/= none andalso Name =/= "lo"], % we ignore the loopback interface
 
-    {addr, IPAddress} = proplists:lookup(addr, element(2, NetworkInterface)),
-    ?assertEqual(IPAddress, IP), % it would be good to test if this is a valid IP
+    IPAddresses = [element(2, proplists:lookup(addr, element(2, NI))) || NI <- UsefulNetworkInterfaces],
+    ?assert(lists:member(IP, IPAddresses)), % it would be good to test if this is a valid IP
 
-    {netmask, Mask} = proplists:lookup(netmask, element(2, NetworkInterface)),
-    BroadcastIP = calculate_broadcast_ip(IPAddress, Mask),
-    ?assertMatch(BroadcastIP, rbeacon:broadcast_ip(Service)),
+    Masks = [element(2, proplists:lookup(netmask, element(2, NI))) || NI <- UsefulNetworkInterfaces],
+    BroadcastIPs = [calculate_broadcast_ip(IPAddress, Mask) || IPAddress <- IPAddresses, Mask <- Masks],
+    ?assert(lists:member(rbeacon:broadcast_ip(Service), BroadcastIPs)),
 
     ok = rbeacon:close(Service),
     
