@@ -68,6 +68,8 @@ hostname_and_broadcast_ip_test() ->
     
     true.
 
+calculate_broadcast_ip({A, B, C, D}, {255, 255, 255, 255}) ->
+    {A, B, C, D};
 calculate_broadcast_ip({A, B, C, _D}, {255, 255, 255, 0}) ->
     {A, B, C, 255}.
 
