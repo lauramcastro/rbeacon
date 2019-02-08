@@ -48,7 +48,7 @@ subscription_unsubscription_test() ->
     
     true.
 
-%% 1 test (8 lines) => 58% to 60%
+%% 1 test (18 lines) => 58% to 60%
 hostname_and_broadcast_ip_test() ->
     {ok, Service} = rbeacon:new(9999),
 
@@ -72,7 +72,7 @@ calculate_broadcast_ip({A, B, C, D}, {255, 255, 255, 255}) ->
     {A, B, C, D};
 calculate_broadcast_ip({A, B, C, _D}, {255, 255, 255, 0}) ->
     {A, B, C, 255};
-calculate_broadcast_ip({A, B, C, _D}, {255, 255, 0, 0}) ->
+calculate_broadcast_ip({A, B, _C, _D}, {255, 255, 0, 0}) ->
     {A, B, 255, 255}.
 
 %% 1 test (5 lines) => 60% to 60%
@@ -82,3 +82,12 @@ set_invalid_interval_test() ->
     ok = rbeacon:close(Service),
     
     true.
+
+%% 1 test (5 lines) => 60% to 66%
+setopts_test() ->
+    {ok, Service} = rbeacon:new(9999),
+    ?assertMatch(ok, rbeacon:setopts(Service, [{interval, 100}])),
+    ok = rbeacon:close(Service),
+    
+    true.
+
