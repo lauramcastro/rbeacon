@@ -23,7 +23,7 @@ subscribe_using_string_and_filtering_test() ->
     ok = rbeacon:subscribe(Client, "noun"),
 
     {ok, Msg, _Addr} = rbeacon:recv(Client),
-    ?assertEqual(Msg, <<"announcement">>),
+    ?assertEqual(<<"announcement">>, Msg),
 
     ok = rbeacon:close(Service),
     ok = rbeacon:close(Client),
@@ -78,7 +78,7 @@ calculate_broadcast_ip({A, B, _C, _D}, {255, 255, 0, 0}) ->
 %% 1 test (5 lines) => 60% to 60%
 set_invalid_interval_test() ->
     {ok, Service} = rbeacon:new(9999),
-    ?assertMatch({error, badarg}, rbeacon:set_interval(Service, patata)),
+    ?assertEqual({error, badarg}, rbeacon:set_interval(Service, patata)),
     ok = rbeacon:close(Service),
     
     true.
@@ -86,8 +86,58 @@ set_invalid_interval_test() ->
 %% 1 test (5 lines) => 60% to 66%
 setopts_test() ->
     {ok, Service} = rbeacon:new(9999),
-    ?assertMatch(ok, rbeacon:setopts(Service, [{interval, 100}])),
+    ?assertEqual(ok, rbeacon:setopts(Service, [{interval, 100}])),
     ok = rbeacon:close(Service),
     
     true.
 
+%% 1 test (6 lines) => 66% to 67%
+creator_can_control_test() ->
+    {ok, Service} = rbeacon:new(9999),
+    Pid = spawn(fun() -> receive stop -> ok end end),
+    ?assertEqual(ok, rbeacon:control(Service, Pid)),
+    ok = rbeacon:close(Service),
+    
+    true.
+
+%% 1 test (8 lines) => 67% to 67%
+not_creator_cannot_control_test() ->
+    {ok, Service} = rbeacon:new(9999),
+    Pid = self(),
+    spawn(fun() -> Pid ! rbeacon:control(Service, Pid) end),
+    Error = receive Msg -> Msg end,
+    ?assertEqual({error, not_owner}, Error),
+    ok = rbeacon:close(Service),
+    
+    true.
+    
+%% 1 test (15 lines) => 67% to 70%
+silence_test() ->
+    {ok, Service} = rbeacon:new(9999),
+    ok = rbeacon:set_interval(Service, 100),
+    ok = rbeacon:publish(Service, <<"announcement">>),
+
+    {ok, Client} = rbeacon:new(9999),
+    ok = rbeacon:subscribe(Client, "noun"),
+
+    {ok, Msg, _Addr} = rbeacon:recv(Client),
+    ?assertEqual(<<"announcement">>, Msg),
+    ok = rbeacon:silence(Service),
+    timer:sleep(200),
+    Received = rbeacon:recv(Client, 200),
+    ?assertMatch({error, _}, Received),
+
+    ok = rbeacon:close(Service),
+    ok = rbeacon:close(Client),
+    
+    true.
+
+%% 1 test (5 lines) => 70% to 71%
+set_interval_twice_test() ->
+    {ok, Service} = rbeacon:new(9999),
+    ?assertEqual(ok, rbeacon:set_interval(Service, 100)),
+    ok = rbeacon:publish(Service, <<"announcement">>),
+    ?assertEqual(ok, rbeacon:set_interval(Service, 500)),
+    ok = rbeacon:close(Service),
+    
+    true.
