@@ -2,6 +2,6 @@ language: erlang
 otp_release:
    - 21.2
 script:
-   - rebar3 do eunit, cover
+   - rebar3 do eunit, proper, cover
 after_success:
    - rebar3 as test coveralls send
